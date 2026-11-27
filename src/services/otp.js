@@ -176,7 +176,7 @@ export function makeOtp(db) {
   const C = config.otp;
   const providers = activeProviders();
   if (providers.length) log.info('login SMS', { providers });
-  else if (config.prod && !config.devOtp) log.error('no SMS provider is configured: nobody can log in. Set Twilio or MSG91 keys (deploy/DEPLOY.md)');
+  else if (config.prod && !config.devOtp) log.error('no SMS provider is configured: nobody can log in. Add Fast2SMS/SNS/Twilio/MSG91 keys, or set ZIPI_DEMO=1 to test with on-screen codes (deploy/DEPLOY.md)');
 
   // generic fixed-window counter in the ratelimit table
   async function hit(key, max, windowMs) {

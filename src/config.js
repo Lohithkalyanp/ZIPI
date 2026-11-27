@@ -48,7 +48,7 @@ export const config = {
   dbSsl: bool(env.DB_SSL, false),
   secret: secret('ZIPI_SECRET', 'secret.key'),            // signs login tokens and hashes OTPs
   dataKey: secret('ZIPI_DATA_KEY', 'data.key'),           // encrypts ID and bank details at rest
-  devOtp: bool(env.ZIPI_DEV_OTP, !PROD || DEMO),
+  devOtp: DEMO || bool(env.ZIPI_DEV_OTP, !PROD), // demo mode always shows codes on screen, even if ZIPI_DEV_OTP=0 is left over
   demo: DEMO,
   // development only: these demo numbers get on-screen codes even when a real SMS service is set up (ignored in production)
   devPhones: PROD && !DEMO ? [] : (env.ZIPI_DEV_PHONES ?? '9000000001-9000000099,9100000001-9100000099').split(',').map(x => x.trim()).filter(Boolean),
