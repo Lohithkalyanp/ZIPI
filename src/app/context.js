@@ -110,6 +110,11 @@ export async function makeContext({ db, bus, otp, maps, storage }) {
   const center = zoneId => { const z = zones.get(zoneId); return z && z.lat != null ? { lat: z.lat, lng: z.lng } : { lat: CITY_CENTER[0], lng: CITY_CENTER[1] }; };
   c.toLL = (zoneId, loc) => { const k = center(zoneId); return { lat: +(k.lat - (loc?.y || 0) / KM_LAT).toFixed(6), lng: +(k.lng + (loc?.x || 0) / kmLng(k.lat)).toFixed(6) }; };
   c.fromLL = (zoneId, lat, lng) => { const k = center(zoneId); return { x: r2((lng - k.lng) * kmLng(k.lat)), y: r2((k.lat - lat) * KM_LAT) }; };
+  // ?lat=&lng= from the app (detected location). Used only for distances, and only within 25 km of a zone centre.
+  c.hereOf = q => { const lat = Number(q?.lat), lng = Number(q?.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    const z = q.zone && c.zone(q.zone); if (z) { const d = c.fromLL(z.id, lat, lng); if (Math.hypot(d.x, d.y) > 25) return null; }
+    return { lat, lng }; };
   c.llOf = (zoneId, a) => (a && a.lat != null ? { lat: a.lat, lng: a.lng } : c.toLL(zoneId, a?.loc));
   c.vendorLL = v => (v.lat != null ? { lat: v.lat, lng: v.lng } : c.toLL(v.zoneId, v.loc));
   c.freshPos = rd => (rd?.pos && now() - rd.pos.at < 10 * 60000 ? rd.pos : null);

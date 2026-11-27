@@ -126,7 +126,7 @@ export function makeServer(app) {
     if (p.startsWith('/api/')) {
       res.on('finish', () => { const ms = Math.round(performance.now() - t0); observe(res.statusCode, ms); if (ms > 1500 || res.statusCode >= 500) log.warn('slow or failed request', { rid, method: req.method, path: p, status: res.statusCode, ms }); else log.debug('request', { method: req.method, path: p, status: res.statusCode, ms }); });
       const kind = p === '/api/auth/otp' ? 'otp' : p === '/api/auth/verify' ? 'verify' : p === '/api/upload' ? 'upload' : null;
-      if (p !== '/api/health' && (limited('api|' + ip, 300, 60000) || (kind && req.method === 'POST' && limited(kind + '|' + ip, { otp: 10, verify: 30, upload: 40 }[kind], 600000))))
+      if (p !== '/api/health' && (limited('api|' + ip, 300, 60000) || (kind && req.method === 'POST' && limited(kind + '|' + ip, { otp: 10, verify: 30, upload: 40 }[kind], 600000)) || (p.startsWith('/api/maps/') && limited('maps|' + ip, 60, 600000))))
         return sendJson(req, res, 429, { error: kind === 'otp' ? 'Too many code requests from this network. Try again in 10 minutes.' : 'Too many requests. Please slow down.' }, { 'Retry-After': '60' });
 
       if (p === '/api/stream') {

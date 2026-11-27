@@ -9,7 +9,7 @@ const alive = el => document.body.contains(el);
 const FOOD_CATS = [['Biryani', 'biryani'], ['Pizza', 'pizza'], ['Thali', 'thali'], ['South Indian', 'dosa'], ['Burgers', 'burger'], ['Desserts', 'cake'], ['Breakfast', 'poha'], ['Chinese', 'noodles']];
 const SHOP_CATS = [['Staples', 'basket'], ['Fruits & veg', 'veg'], ['Dairy', 'dairy'], ['Snacks', 'basket'], ['Medicines', 'meds'], ['Bakery', 'cake'], ['Household', 'basket']];
 const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
-const locQ = () => (S.addressId ? { address: S.addressId } : {});
+const locQ = () => (S.addressId ? { address: S.addressId } : S.here ? { lat: S.here.lat, lng: S.here.lng } : {});
 
 const isFav = id => !!S.me?.user?.favs?.includes(id);
 const favBtn = (id, name, cls = 'fav') => `<button class="${cls}" data-fav="${id}" aria-pressed="${isFav(id)}" aria-label="${isFav(id) ? 'Remove' : 'Save'} ${esc(name)} ${isFav(id) ? 'from' : 'to'} favourites">${icon(isFav(id) ? 'heartOn' : 'heart', 18)}</button>`;
@@ -283,7 +283,8 @@ function addressForm(vendorZone, a = {}) {
 }
 export function addAddressSheet(vendorZone, existing = null) {
   return new Promise(res => {
-    const s = sheet(addressForm(vendorZone, existing || {}), { title: existing ? 'Edit address' : 'Add delivery address', onClose: () => res(null) });
+    const fromHere = !existing && S.here && (!vendorZone || S.here.zoneId === vendorZone) ? S.here : null; // start at the detected location
+    const s = sheet(addressForm(vendorZone, existing || (fromHere ? { area: fromHere.area, zoneId: fromHere.zoneId } : {})), { title: existing ? 'Edit address' : 'Add delivery address', onClose: () => res(null) });
     const form = s.el.querySelector('#af'), zsel = form.querySelector('[name=zoneId]'), zoneOf = id => S.zones.find(z => z.id === id);
     let pm = null, revT = null, typed = !!existing;
     form.addEventListener('input', e => { if (['line', 'area'].includes(e.target.name)) typed = true; });
@@ -293,8 +294,9 @@ export function addAddressSheet(vendorZone, existing = null) {
       // fill the area from the pin while the person has not typed their own
       clearTimeout(revT); revT = setTimeout(async () => { if (typed) return; const r = await api.get('/api/maps/reverse', ll).catch(() => null); if (r?.area && !typed) { form.area.value = r.area; if (r.road && !form.line.value) form.line.placeholder = r.road; } }, 700); };
     (async () => {
-      const start = existing?.lat ? existing : zoneOf(zsel.value); if (!start?.lat) { form.querySelector('#pmw').hidden = true; return; }
-      try { const { m } = await makeMap(form.querySelector('#pm'), { center: start, zoom: existing?.lat ? 17 : 15 }); pm = m; setLL(m.getCenter()); m.on('moveend', () => setLL(m.getCenter())); }
+      const exact = existing?.lat ? existing : fromHere, start = exact || zoneOf(zsel.value); if (!start?.lat) { form.querySelector('#pmw').hidden = true; return; }
+      if (fromHere?.line && !form.line.value) form.line.placeholder = fromHere.line;
+      try { const { m } = await makeMap(form.querySelector('#pm'), { center: { lat: start.lat, lng: start.lng }, zoom: exact ? 17 : 15 }); pm = m; setLL(m.getCenter()); m.on('moveend', () => setLL(m.getCenter())); }
       catch { form.querySelector('#pmw').hidden = true; form.querySelector('#pmhint').hidden = true; }
     })();
     zsel.onchange = () => { const z = zoneOf(zsel.value); if (pm && z?.lat) pm.setView([z.lat, z.lng], 15); };

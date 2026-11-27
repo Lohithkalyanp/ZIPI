@@ -14,7 +14,9 @@ export default function catalog(route, c) {
   const { db } = c;
   const fromLL = ctx => {
     const a = ctx.user && ctx.query.address && (ctx.user.addresses || []).find(x => x.id === ctx.query.address);
-    return a ? c.llOf(a.zoneId, a) : ctx.query.zone ? c.center(ctx.query.zone) : null;
+    if (a) return c.llOf(a.zoneId, a);
+    const here = c.hereOf(ctx.query); // the customer's detected location, before they save an address
+    return here || (ctx.query.zone ? c.center(ctx.query.zone) : null);
   };
 
   route('GET', '/api/health', null, () => ({ ok: true, zipi: true }));

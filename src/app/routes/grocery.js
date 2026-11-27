@@ -74,7 +74,7 @@ export default function grocery(route, c) {
     const r = await db.q(`SELECT i.data AS item, v.data AS shop FROM items i JOIN vendors v ON v.id = i.data->>'vendorId' WHERE ${conds.join(' AND ')} ORDER BY ${sort} LIMIT 300 OFFSET ${Math.max(0, +q_.offset || 0)}`, params);
     const a = ctx.user && q_.address && (ctx.user.addresses || []).find(x => x.id === q_.address);
     const shops = new Map(r.rows.map(x => [x.shop.id, x.shop]));
-    const cards = new Map((await c.vendorCards([...shops.values()], a ? c.llOf(a.zoneId, a) : c.center(zone))).map(v => [v.id, v]));
+    const cards = new Map((await c.vendorCards([...shops.values()], a ? c.llOf(a.zoneId, a) : c.hereOf(q_) || c.center(zone))).map(v => [v.id, v]));
     const items = r.rows.map(x => ({ ...c.itemView(x.item), category: categoryOf(x.item), vendor: cards.get(x.shop.id) }));
     // shops in this category, nearest first, for the filter chips
     const shopList = [...cards.values()].map(v => ({ id: v.id, name: v.name, eta: v.eta, dist: v.dist, count: items.filter(i => i.vendorId === v.id).length })).sort((x, y) => x.dist - y.dist);

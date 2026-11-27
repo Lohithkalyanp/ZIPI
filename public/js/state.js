@@ -20,7 +20,7 @@ export const SESSION_KEY = 'session.' + APP;
 // one-time move of the old shared login (customer app only; staff must log in again in their own app)
 try { if (APP === 'customer' && localStorage.getItem('zipi.session') && !localStorage.getItem('zipi.session.customer')) localStorage.setItem('zipi.session.customer', localStorage.getItem('zipi.session')); localStorage.removeItem('zipi.session'); } catch { }
 
-export const S = { me: null, zones: [], config: null, zoneId: store.get('zone', null), addressId: store.get('addr', null), mode: 'web', after: null, live: null };
+export const S = { me: null, zones: [], config: null, zoneId: store.get('zone', null), addressId: store.get('addr', null), here: store.get('here', null), mode: 'web', after: null, live: null };
 export const user = () => S.me?.user || null;
 
 /* ---------- appearance: system / light / dark ---------- */

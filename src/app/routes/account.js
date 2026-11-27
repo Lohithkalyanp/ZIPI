@@ -123,11 +123,12 @@ export default function account(route, c) {
     return { ok: true };
   });
 
-  route('GET', '/api/maps/search', 'any', async ({ query }) => {
+  // public: visitors pick a location before logging in (rate-limited per network in http.js)
+  route('GET', '/api/maps/search', null, async ({ query }) => {
     const z = query.zone && c.zone(query.zone);
     return c.maps.search(str(query.q, 120), z ? { lat: z.lat, lng: z.lng } : null);
   });
-  route('GET', '/api/maps/reverse', 'any', async ({ query }) => {
+  route('GET', '/api/maps/reverse', null, async ({ query }) => {
     const ll = c.latLng(query, 'Location'); return (await c.maps.reverse(ll.lat, ll.lng)) || {};
   });
   void r2; void num;

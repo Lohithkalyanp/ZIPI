@@ -487,3 +487,4 @@ tr.rowlink{cursor:pointer}tr.rowlink:hover td{background:var(--sunk)}
 .thumbs{display:flex}.thumbs .thumb{width:44px;height:44px;border:2px solid var(--bg);margin-left:-14px}.thumbs .thumb:first-child{margin-left:0}
 .trip{border-left:4px solid var(--mari)}
 .bkpart{width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);color:inherit;font:inherit;cursor:pointer;padding-left:0;padding-right:0}.bkpart:hover{background:var(--sunk)}
+@media (max-width:760px){.login .art svg.scene{display:none}} /* phones: the food tiles would cover the welcome text */
