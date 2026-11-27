@@ -39,8 +39,8 @@ services:
         generateValue: true
       - key: ZIPI_DATA_KEY        # copy this value to a password manager after the first deploy
         generateValue: true
-      - key: ZIPI_DEV_OTP
-        value: "0"
+      - key: ZIPI_DEMO            # 1 = TEST VERSION: sample shops, test accounts, login codes on screen, no paid SMS.
+        value: "1"                #     Set to 0 (and add Fast2SMS or SNS keys) before real customers.
       - key: SMS_PROVIDERS        # tried in order; ones without keys are skipped
         value: fast2sms,sns
       - key: FAST2SMS_API_KEY     # Fast2SMS dashboard > Dev API. Typed in Render, never stored in GitHub

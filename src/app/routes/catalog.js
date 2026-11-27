@@ -24,7 +24,7 @@ export default function catalog(route, c) {
   route('GET', '/api/config', null, async ({ query }) => {
     const s = await c.S(), coupons = await db.find('coupons', { active: true }, { limit: 50 });
     return { commission: s.commission, freeDeliveryAbove: s.freeDeliveryAbove, baseFee: s.baseFee, platformFee: s.platformFee, smallOrderBelow: s.smallOrderBelow, smallOrderFee: s.smallOrderFee,
-      devMode: !!c.config.devOtp, loyaltyPct: s.loyaltyPct || 0, coinsMaxPct: s.coinsMaxPct ?? 20, referralReward: s.referralReward || 0, scheduleDays: s.scheduleDays || 2, maxAddresses: s.maxAddresses || 20,
+      devMode: !!c.config.devOtp, demo: !!c.config.demo, loyaltyPct: s.loyaltyPct || 0, coinsMaxPct: s.coinsMaxPct ?? 20, referralReward: s.referralReward || 0, scheduleDays: s.scheduleDays || 2, maxAddresses: s.maxAddresses || 20,
       supportPhone: s.supportPhone, surge: await c.surgeNow(str(query.zone, 40) || null),
       coupons: coupons.filter(x => !x.expiresAt || x.expiresAt > Date.now()).map(x => ({ code: x.code, title: x.title, desc: x.desc, minOrder: x.minOrder, vendorType: x.vendorType || null })) };
   });

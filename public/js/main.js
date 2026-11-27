@@ -72,7 +72,7 @@ api.on(async e => {
 
 /* ---------- shells ---------- */
 function demoBar() {
-  if (api.mode !== 'local') return '';
+  if (api.mode !== 'local') return S.config?.demo ? `<div class="demo">${icon('info', 16)}<span><b>Test version.</b> Login codes appear on screen and no SMS is sent. Use the test accounts on the login page and don't enter real personal details.</span></div>` : '';
   return `<div class="demo">${icon('info', 16)}<span>Demo mode: the full backend is running inside this browser. Run <b>node server.js</b> for the real multi-device app.</span><button data-act="demo-reset">Reset demo data</button></div>`;
 }
 const zoneName = () => { const a = S.me?.user?.addresses?.find(x => x.id === S.addressId); const z = S.zones.find(z => z.id === (a?.zoneId || S.zoneId)); return { z, a }; };

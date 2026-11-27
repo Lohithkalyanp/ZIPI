@@ -198,7 +198,7 @@ export function makeOtp(db) {
     }
     const base = { id: phone, exp: t + C.ttlSec * 1000, tries: 0, sentAt: t };
     let doc = null, code = null;
-    const devPhone = !config.prod && config.devOtp && config.devPhones.some(r => { const [a, z = a] = r.split('-'); return phone >= a && phone <= z && phone.length === a.length; });
+    const devPhone = (!config.prod || config.demo) && config.devOtp && config.devPhones.some(r => { const [a, z = a] = r.split('-'); return phone >= a && phone <= z && phone.length === a.length; });
     if (!providers.length || devPhone) {
       if (config.prod && !config.devOtp) throw new OtpError(503, 'Login by SMS is not set up yet. Please try again later.');
       code = randomDigits(6); doc = { ...base, via: 'dev', hash: hmac(phone + ':' + code) };

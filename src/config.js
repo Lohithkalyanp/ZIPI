@@ -22,6 +22,8 @@ const bool = (v, d) => (v === undefined || v === '' ? d : !['0', 'false', 'no', 
 const int = (v, d) => (v === undefined || v === '' || !Number.isFinite(+v) ? d : Math.round(+v));
 
 const PROD = env.NODE_ENV === 'production';
+// demo / testing deployment: sample shops and test accounts, login codes on screen, no paid SMS needed. Never for real customers.
+const DEMO = /^(1|true|yes|on)$/i.test(env.ZIPI_DEMO || '');
 if (PROD && !env.DATABASE_URL && env.ZIPI_ALLOW_EMBEDDED !== '1') throw new Error('DATABASE_URL must be set in production (PostgreSQL). See deploy/DEPLOY.md');
 const DATA = path.resolve(env.DATA_DIR || path.join(ROOT, 'data'));
 fs.mkdirSync(DATA, { recursive: true });
@@ -46,9 +48,10 @@ export const config = {
   dbSsl: bool(env.DB_SSL, false),
   secret: secret('ZIPI_SECRET', 'secret.key'),            // signs login tokens and hashes OTPs
   dataKey: secret('ZIPI_DATA_KEY', 'data.key'),           // encrypts ID and bank details at rest
-  devOtp: bool(env.ZIPI_DEV_OTP, !PROD),
+  devOtp: bool(env.ZIPI_DEV_OTP, !PROD || DEMO),
+  demo: DEMO,
   // development only: these demo numbers get on-screen codes even when a real SMS service is set up (ignored in production)
-  devPhones: PROD ? [] : (env.ZIPI_DEV_PHONES ?? '9000000001-9000000099,9100000001-9100000099').split(',').map(x => x.trim()).filter(Boolean),
+  devPhones: PROD && !DEMO ? [] : (env.ZIPI_DEV_PHONES ?? '9000000001-9000000099,9100000001-9100000099').split(',').map(x => x.trim()).filter(Boolean),
   trustProxy: bool(env.ZIPI_TRUST_PROXY, false),
   publicUrl: env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || '', // Render sets RENDER_EXTERNAL_URL automatically
   metricsToken: env.METRICS_TOKEN || '',
