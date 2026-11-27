@@ -50,7 +50,7 @@ export const config = {
   // development only: these demo numbers get on-screen codes even when a real SMS service is set up (ignored in production)
   devPhones: PROD ? [] : (env.ZIPI_DEV_PHONES ?? '9000000001-9000000099,9100000001-9100000099').split(',').map(x => x.trim()).filter(Boolean),
   trustProxy: bool(env.ZIPI_TRUST_PROXY, false),
-  publicUrl: env.PUBLIC_URL || '',
+  publicUrl: env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || '', // Render sets RENDER_EXTERNAL_URL automatically
   metricsToken: env.METRICS_TOKEN || '',
   logLevel: env.LOG_LEVEL || (PROD ? 'info' : 'debug'),
   historyDays: int(env.HISTORY_DAYS, 90),

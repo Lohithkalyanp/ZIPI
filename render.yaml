@@ -1,0 +1,59 @@
+# Render Blueprint: creates the ZIPI web service and its PostgreSQL database.
+# Render dashboard -> New -> Blueprint -> pick this GitHub repo. See deploy/DEPLOY.md ("Render").
+# Plans: "free" is for trying it out (the web service sleeps when idle; the free database is deleted after 30 days).
+# Before real customers, switch to web "starter" and database "basic-256mb" or bigger.
+databases:
+  - name: zipi-db
+    databaseName: zipi
+    user: zipi
+    plan: free
+    region: singapore          # closest Render region to India
+
+services:
+  - type: web
+    name: zipi
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /readyz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: APP_TZ
+        value: Asia/Kolkata
+      - key: WEB_CONCURRENCY      # small Render instances: one worker (Node otherwise counts the host's CPUs)
+        value: "1"
+      - key: DB_POOL_SIZE
+        value: "10"
+      - key: ZIPI_TRUST_PROXY
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase: { name: zipi-db, property: connectionString }
+      - key: DB_SSL               # the internal Render connection needs no SSL
+        value: "0"
+      - key: ZIPI_SECRET
+        generateValue: true
+      - key: ZIPI_DATA_KEY        # copy this value to a password manager after the first deploy
+        generateValue: true
+      - key: ZIPI_DEV_OTP
+        value: "0"
+      - key: SMS_PROVIDERS
+        value: sns
+      - key: SNS_REGION
+        value: ap-south-1
+      - key: SNS_ACCESS_KEY_ID    # sync: false = you type it in the Render dashboard; it is never stored in GitHub
+        sync: false
+      - key: SNS_SECRET_ACCESS_KEY
+        sync: false
+      - key: SNS_SENDER_ID
+        sync: false
+      - key: SNS_DLT_ENTITY_ID
+        sync: false
+      - key: SNS_DLT_TEMPLATE_ID
+        sync: false
+      - key: SMS_TEXT
+        value: "{code} is your ZIPI login code. Valid for {minutes} minutes. Do not share it."

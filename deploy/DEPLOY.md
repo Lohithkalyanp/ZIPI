@@ -46,6 +46,19 @@ docker compose -f deploy/docker-compose.yml up -d --build
 docker compose -f deploy/docker-compose.yml exec app node scripts/zipi.js create-admin 98XXXXXXXX "Your Name"
 ```
 
+## Option R: Render (no server to manage)
+
+`render.yaml` in the project root is a Render Blueprint. It creates the web service and a PostgreSQL database, and generates `ZIPI_SECRET` and `ZIPI_DATA_KEY`.
+
+1. Render dashboard → **New → Blueprint** → connect GitHub and pick the ZIPI repo → **Apply**.
+2. Render asks for the `sync: false` values (SNS keys, sender ID, DLT IDs). Type them there; they are never stored in GitHub.
+3. After the first deploy, copy `ZIPI_DATA_KEY` (service → Environment) to a password manager.
+4. Create the first admin from your computer, using the database's **External Database URL** (database page → Connect):
+   `DATABASE_URL='<external url>' DB_SSL=1 NODE_ENV=production ZIPI_SECRET='<from Render>' ZIPI_DATA_KEY='<from Render>' node scripts/zipi.js create-admin 98XXXXXXXX "Your Name"`
+5. Every push to `main` deploys again automatically. `PUBLIC_URL` defaults to the `onrender.com` address; set it when you add your own domain.
+
+Limits: the free web service sleeps after 15 idle minutes (the first visit then takes about a minute), and the free database is deleted after 30 days. Render's disk is wiped on every deploy, so set `STORAGE_DRIVER=s3` and the `S3_*` variables to keep shop photos and documents.
+
 ## Option B: several servers (24/7, no single point of failure)
 
 1. **Database:** a managed PostgreSQL with a standby replica in another availability zone (automatic failover).
