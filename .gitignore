@@ -1,0 +1,17 @@
+# dependencies (installed with npm ci)
+node_modules/
+
+# local data: database, encryption keys (secret.key, data.key), uploads, backups. Never upload.
+data/
+
+# secrets: keep keys only in .env on each machine (deploy/.env.example is the safe template)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# logs, archives, OS clutter
+*.log
+*.tar.gz
+.DS_Store

@@ -1,0 +1,24 @@
+{
+  "name": "zipi",
+  "version": "3.0.0",
+  "description": "ZIPI hyperlocal delivery platform: customer, shop, rider, zone manager and admin apps",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "ops": "node scripts/zipi.js",
+    "migrate": "node scripts/zipi.js migrate",
+    "backup": "node scripts/zipi.js backup",
+    "check": "node scripts/zipi.js check",
+    "scale-test": "node scripts/seed-large.js"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@electric-sql/pglite": "^0.6.0",
+    "pg": "^8.23.1"
+  }
+}

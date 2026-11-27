@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SendLoginCodesToPhoneNumbersOnly",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "NotResource": "arn:aws:sns:*:*:*"
+    },
+    {
+      "Sid": "ReadSmsSettingsForSmsCheck",
+      "Effect": "Allow",
+      "Action": ["sns:GetSMSSandboxAccountStatus", "sns:GetSMSAttributes"],
+      "Resource": "*"
+    }
+  ]
+}

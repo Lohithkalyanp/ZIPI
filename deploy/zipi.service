@@ -1,0 +1,20 @@
+# systemd unit for a single VPS:  sudo cp deploy/zipi.service /etc/systemd/system/ && sudo systemctl enable --now zipi
+[Unit]
+Description=ZIPI delivery platform
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=zipi
+WorkingDirectory=/opt/zipi
+EnvironmentFile=/opt/zipi/.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

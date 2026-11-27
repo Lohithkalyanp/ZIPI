@@ -1,0 +1,30 @@
+# One-machine production-style stack: PostgreSQL + ZIPI (+ optional self-hosted maps).
+#   cp deploy/.env.example .env   # fill it in
+#   docker compose -f deploy/docker-compose.yml up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment: { POSTGRES_DB: zipi, POSTGRES_USER: zipi, POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}" }
+    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U zipi"], interval: 5s, retries: 10 }
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=1GB", "-c", "effective_cache_size=3GB", "-c", "work_mem=16MB"]
+  app:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    restart: always
+    env_file: ../.env
+    environment: { DATABASE_URL: "postgres://zipi:${POSTGRES_PASSWORD}@db:5432/zipi", DB_SSL: "0" }
+    depends_on: { db: { condition: service_healthy } }
+    ports: [ "127.0.0.1:3000:3000" ]
+    volumes: [ "appdata:/app/data" ]
+  # Self-hosted routing for India (needs ~8 GB RAM to build). Then set OSRM_URL=http://osrm:5000
+  # osrm:
+  #   image: osrm/osrm-backend
+  #   command: osrm-routed --algorithm mld /data/india-latest.osrm
+  #   volumes: [ "./osrm:/data" ]
+  # Self-hosted address search. Then set NOMINATIM_URL=http://nominatim:8080
+  # nominatim:
+  #   image: mediagis/nominatim:4.4
+  #   environment: { PBF_URL: "https://download.geofabrik.de/asia/india-latest.osm.pbf" }
+  #   volumes: [ "nominatim:/var/lib/postgresql/14/main" ]
+volumes: { pgdata: {}, appdata: {} }
