@@ -7,6 +7,7 @@
 //      twilio         ZIPI creates the code and Twilio Messages delivers it as a normal SMS (needs a DLT sender ID for India).
 //      sns            ZIPI creates the code and AWS SNS delivers it (needs DLT sender ID, entity ID and template ID for India).
 //      msg91          ZIPI creates the code and MSG91's OTP API delivers it with a DLT-approved template.
+//      fast2sms       ZIPI creates the code and Fast2SMS delivers it (route otp: their pre-approved OTP text; route dlt: your template).
 //    When ZIPI creates the code it is 6 digits from a cryptographic random source and only an HMAC of phone+code is stored.
 //  - Without any provider (development) the code is printed to the log and, while ZIPI_DEV_OTP is on, shown on screen.
 import { config } from '../config.js';
@@ -18,7 +19,7 @@ export class OtpError extends Error { constructor(status, message, retryAfter) {
 class SendError extends Error { constructor(message, { retry = false } = {}) { super(message); this.retry = retry; } }
 
 /* ---------- providers ---------- */
-const T = config.twilio, M = config.msg91, A = config.sns;
+const T = config.twilio, M = config.msg91, A = config.sns, F = config.fast2sms;
 const snsEndpoint = () => A.endpoint || `https://sns.${A.region}.amazonaws.com/`;
 const sns = params => awsQuery({ endpoint: snsEndpoint(), region: A.region, service: 'sns', params: { Version: '2010-03-31', ...params }, key: A.key, secret: A.secret, token: A.token, timeoutMs: A.timeoutMs });
 const twilioAuth = () => 'Basic ' + Buffer.from(`${T.apiKey || T.accountSid}:${T.apiSecret || T.authToken}`).toString('base64');
@@ -86,6 +87,18 @@ export const PROVIDERS = {
       throw new SendError(`msg91 ${r.status} ${body.message || ''}`.trim(), { retry: r.status >= 500 });
     },
   },
+  fast2sms: {
+    kind: 'deliver', ready: () => !!F.key && (F.route !== 'dlt' || !!(F.senderId && F.templateId)),
+    async deliver(phone, code) {
+      const body = F.route === 'dlt' ? { route: 'dlt', sender_id: F.senderId, message: F.templateId, variables_values: code, numbers: phone, flash: '0' }
+        : { route: 'otp', variables_values: code, numbers: phone, flash: '0' };
+      let r; try { r = await fetch(`${F.url}/bulkV2`, { method: 'POST', headers: { authorization: F.key, 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(F.timeoutMs) }); }
+      catch (err) { throw new SendError(`network: ${err.message}`, { retry: true }); }
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.return === true) return j.request_id || 'sent';
+      throw new SendError(`fast2sms ${r.status} ${j.status_code || ''} ${[].concat(j.message || '').join(' ')}`.trim(), { retry: r.status >= 500 });
+    },
+  },
 };
 export function activeProviders() {
   const names = config.smsProviders.length ? config.smsProviders : Object.keys(PROVIDERS);
@@ -138,6 +151,17 @@ export async function checkProviders() {
     }
   }
   if (names.includes('msg91') && PROVIDERS.msg91.ready()) out.push({ provider: 'msg91', ok: true, msg: 'keys set (MSG91 cannot be checked without sending; use test-sms)' });
+  if (names.includes('fast2sms') && F.key) {
+    if (F.route === 'dlt' && !(F.senderId && F.templateId)) out.push({ provider: 'fast2sms', ok: false, msg: 'FAST2SMS_ROUTE=dlt needs FAST2SMS_SENDER_ID and FAST2SMS_TEMPLATE_ID (the Message ID of your DLT template in Fast2SMS)' });
+    else {
+      try {
+        const r = await fetch(`${F.url}/wallet`, { headers: { authorization: F.key, accept: 'application/json' }, signal: AbortSignal.timeout(F.timeoutMs) });
+        const j = await r.json().catch(() => ({}));
+        if (j.return === true) out.push({ provider: 'fast2sms', ok: +j.wallet > 0, msg: `key accepted, wallet ₹${j.wallet}${+j.wallet > 0 ? '' : ' (recharge before launch: texts fail with an empty wallet)'}, route ${F.route}` });
+        else out.push({ provider: 'fast2sms', ok: false, msg: `Fast2SMS refused the key or answered ${r.status}: ${[].concat(j.message || '').join(' ')}` });
+      } catch (err) { out.push({ provider: 'fast2sms', ok: false, msg: `Could not reach Fast2SMS: ${err.message}` }); }
+    }
+  }
   return out;
 }
 // one retry for network / server errors, then give up on this provider

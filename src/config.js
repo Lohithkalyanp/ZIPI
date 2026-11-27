@@ -89,6 +89,12 @@ export const config = {
     authKey: env.MSG91_AUTH_KEY || '', templateId: env.MSG91_TEMPLATE_ID || '',
     url: env.MSG91_OTP_URL || 'https://control.msg91.com/api/v5/otp', timeoutMs: int(env.MSG91_TIMEOUT_MS, 8000),
   },
+  fast2sms: {
+    key: env.FAST2SMS_API_KEY || '',
+    route: (env.FAST2SMS_ROUTE || 'otp').toLowerCase(),        // otp = Fast2SMS's own OTP message (no DLT of your own); dlt = your DLT template
+    senderId: env.FAST2SMS_SENDER_ID || '', templateId: env.FAST2SMS_TEMPLATE_ID || '', // only for route dlt (Fast2SMS "Message ID")
+    url: (env.FAST2SMS_URL || 'https://www.fast2sms.com/dev').replace(/\/$/, ''), timeoutMs: int(env.FAST2SMS_TIMEOUT_MS, 8000),
+  },
   maps: {
     // public OpenStreetMap servers are for light use only; point these at your own Nominatim / OSRM in production
     nominatimUrl: (env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org').replace(/\/$/, ''),

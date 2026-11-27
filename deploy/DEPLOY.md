@@ -90,7 +90,14 @@ The public servers allow only light use (about one search a second, no heavy app
 
 Both are commented out in `deploy/docker-compose.yml`. Map tiles come from `tile.openstreetmap.org`. For heavy use, switch to a paid tile provider (MapTiler, Stadia) and update the tile URL in `public/js/map.js` and the CSP `img-src` in `src/http.js`.
 
-## Login SMS (AWS SNS, Twilio, MSG91)
+## Login SMS (Fast2SMS, AWS SNS, Twilio, MSG91)
+
+### Option F: Fast2SMS (quickest for India)
+
+1. Sign up at fast2sms.com, finish the business details and website verification they ask for, and add wallet balance.
+2. Dev API: copy the API key. Put it in `FAST2SMS_API_KEY` (Render: Environment; server: `.env`). Never commit it.
+3. `FAST2SMS_ROUTE=otp` sends Fast2SMS's own pre-approved OTP text, so you need no DLT registration of your own. To send your own wording, register a DLT sender ID and template, add it in Fast2SMS, then set `FAST2SMS_ROUTE=dlt`, `FAST2SMS_SENDER_ID` and `FAST2SMS_TEMPLATE_ID` (their Message ID).
+4. `SMS_PROVIDERS=fast2sms,sns` uses Fast2SMS first and falls back to SNS. `node scripts/zipi.js sms-check` checks the key and wallet, `test-sms <phone>` sends a real code.
 
 The server creates, sends and checks every code. The browser never sees the code except as the SMS the person receives, and the code is never sent to the page. Codes are valid for 5 minutes, with 5 tries. Sending is limited to one every 30 s, 5 per 10 min and 15 per day per phone, and 20 per 10 min per network. If someone is locked out, support can clear it in Admin → Access control → the person → "Reset login code limit", or run `node scripts/zipi.js unlock-otp <phone>`.
 

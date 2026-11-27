@@ -41,8 +41,12 @@ services:
         generateValue: true
       - key: ZIPI_DEV_OTP
         value: "0"
-      - key: SMS_PROVIDERS
-        value: sns
+      - key: SMS_PROVIDERS        # tried in order; ones without keys are skipped
+        value: fast2sms,sns
+      - key: FAST2SMS_API_KEY     # Fast2SMS dashboard > Dev API. Typed in Render, never stored in GitHub
+        sync: false
+      - key: FAST2SMS_ROUTE       # otp (Fast2SMS's ready OTP text) or dlt (your own DLT template)
+        value: otp
       - key: SNS_REGION
         value: ap-south-1
       - key: SNS_ACCESS_KEY_ID    # sync: false = you type it in the Render dashboard; it is never stored in GitHub
