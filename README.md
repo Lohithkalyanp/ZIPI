@@ -118,3 +118,4 @@ core/seed.js, memdb.js    sample data generator (used for development seeding on
 - **Own map servers** (OSRM, Nominatim) for production traffic.
 - **Push notifications when the app is closed** (Web Push or Firebase). In-app and background-tab alerts work today.
 - **Legal:** terms, privacy policy, FSSAI and pharmacy rules.
+# ZIPI
