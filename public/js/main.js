@@ -197,9 +197,16 @@ async function locationGate() {
 
 /* ---------- login ---------- */
 // test accounts, shown only while dev OTP is on, and only the ones for this app
-const DEMO = { customer: [['9000000006', 'Riya Sharma', 'Customer with saved addresses']], vendor: [['9000000003', 'Saffron Biryani House', 'Restaurant owner'], ['9000000004', 'Sharma Kirana Store', 'Grocery shop owner']],
-  rider: [['9000000005', 'Ravi Kumar', 'Rider, Vijay Nagar'], ['9100000041', 'Imran Sheikh', 'Rider, Vijay Nagar']], manager: [['9000000002', 'Vikram Rathore', 'Manager, Vijay Nagar'], ['9000000007', 'Sneha Kulkarni', 'Manager, Palasia']],
-  admin: [['9000000001', 'Anita Joshi', 'Super admin, head office']] }[APP];
+const DEMO = {
+  customer: [['9000000006', 'Riya Sharma', 'Saved home and work addresses'], ['9000000008', 'Aditya Rao', 'New customer: first-order offer, no address yet'], ['9000000009', 'Meera Pillai', 'Lives in Palasia']],
+  vendor: [['9000000003', 'Saffron Biryani House', 'Restaurant, Vijay Nagar'], ['9100000011', 'Malwa Thali Kitchen', 'Pure-veg restaurant'], ['9000000004', 'Sharma Kirana Store', 'Grocery shop'],
+    ['9100000017', 'Fresh Sabzi Corner', 'Fruits and vegetables'], ['9100000019', 'Shree Medicals', 'Pharmacy'], ['9100000051', 'Vidya Stationery & Gift Corner', 'Stationery and gifts'],
+    ['9100000021', 'Palasia Chaat Bhandar', 'Restaurant, Palasia'], ['9100000023', 'Daily Needs Mart', 'Grocery, Palasia']],
+  rider: [['9000000005', 'Ravi Kumar', 'EV scooter, Vijay Nagar'], ['9100000041', 'Imran Sheikh', 'Bike, Vijay Nagar'], ['9100000042', 'Pooja Rathore', 'Scooter, Vijay Nagar (offline)'], ['9100000043', 'Arjun Yadav', 'Bike, Palasia']],
+  manager: [['9000000002', 'Vikram Rathore', 'Manager, Vijay Nagar (all permissions)'], ['9000000007', 'Sneha Kulkarni', 'Manager, Palasia'], ['9000000016', 'Asha Dubey', 'Vijay Nagar, support and orders only'],
+    ['9000000015', 'Rohit Verma', 'Bhawarkua (zone not live yet)']],
+  admin: [['9000000001', 'Anita Joshi', 'Super admin: everything'], ['9000000011', 'Karan Mehta', 'Operations: orders, partners, zones'], ['9000000012', 'Priya Nair', 'Support: tickets and orders'],
+    ['9000000013', 'Deepak Joshi', 'Finance: payouts and reports'], ['9000000014', 'Farah Ali', 'Marketing: coupons and fees']] }[APP];
 const LOGIN = { customer: ['Your neighbourhood, delivered.', 'Food from local kitchens and groceries from the shops you already trust, at your door in about 20 minutes.'],
   vendor: ['Run your shop on ZIPI.', 'Accept orders, manage your menu and stock, and track earnings and payouts.'], rider: ['Deliver in your own neighbourhood.', 'Go online, take nearby orders and see your earnings and shifts.'],
   manager: ['Keep your zone running.', 'Approve partners, watch live orders and riders, and keep stock right.'], admin: ['ZIPI control centre.', 'Business, access control, partners, money and data in one place. Authorised staff only.'] }[APP];

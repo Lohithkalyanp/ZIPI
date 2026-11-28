@@ -92,3 +92,48 @@ export async function ensureDemoCatalog(app) {
   if (kirana) await db.insertMany('items', mk(kirana.id, [['Tata Tea Gold', 145, 150, '250 g', 'beverages', 20, 'Tea & coffee'], ['Nescafe Classic', 165, 175, '50 g', 'beverages', 15, 'Tea & coffee'],
     ['Real Mixed Fruit Juice', 110, 120, '1 L', 'beverages', 18, 'Juices'], ['Coca-Cola', 40, 40, '750 ml', 'beverages', 30, 'Soft drinks'], ['Bisleri Water', 20, 20, '1 L', 'beverages', 48, 'Water']]));
 }
+
+// Development and demo mode: extra test logins for every role (shown on the login pages). Runs on every start and only
+// creates what is missing, so existing demo databases get them too.
+export const TEST_ACCOUNTS = [
+  // admins with different permissions (9000000001 Anita Joshi is the super admin)
+  { phone: '9000000011', name: 'Karan Mehta', role: 'admin', perms: ['dashboard', 'orders', 'partners', 'zones'] },
+  { phone: '9000000012', name: 'Priya Nair', role: 'admin', perms: ['support', 'orders'] },
+  { phone: '9000000013', name: 'Deepak Joshi', role: 'admin', perms: ['dashboard', 'payouts', 'reports'] },
+  { phone: '9000000014', name: 'Farah Ali', role: 'admin', perms: ['dashboard', 'coupons', 'settings'] },
+  // managers (9000000002 Vijay Nagar and 9000000007 Palasia already exist)
+  { phone: '9000000015', name: 'Rohit Verma', role: 'manager', zoneId: 'z-bhawar' },
+  { phone: '9000000016', name: 'Asha Dubey', role: 'manager', zoneId: 'z-vijay', mperms: ['support', 'orders'] },
+  // customers
+  { phone: '9000000008', name: 'Aditya Rao', role: 'customer' },
+  { phone: '9000000009', name: 'Meera Pillai', role: 'customer', addresses: [
+    { id: 'a-meera1', label: 'Home', line: '12, Race Course Road', area: 'Palasia', landmark: 'Opposite Treasure Island', zoneId: 'z-palasia', loc: { x: -.2, y: .3 } }] },
+];
+export async function ensureTestAccounts(app) {
+  const { db, c } = app; let made = 0;
+  for (const a of TEST_ACCOUNTS) {
+    if (await db.one('users', { phone: a.phone })) continue;
+    if (a.zoneId && !c.zone(a.zoneId)) continue;
+    const u = await c.ensureUser(a.phone, a.name);
+    if (a.addresses) await db.update('users', u.id, { addresses: a.addresses, defaultAddress: a.addresses[0].id });
+    if (a.role === 'admin') await c.addRole(u.id, 'admin', { perms: a.perms || ['*'] });
+    if (a.role === 'manager') await c.addRole(u.id, 'manager', { zoneId: a.zoneId, ...(a.mperms ? { mperms: a.mperms } : {}) });
+    made++;
+  }
+  if (made) log.info('added test accounts', { count: made });
+}
+
+// Every mode, production too: make the owner's own phone(s) super admin, from ZIPI_ADMIN_PHONES="98XXXXXXXX:Your Name,97XXXXXXXX".
+// Set it in the hosting dashboard (never in GitHub). Safe to leave set: it only adds the admin role when it is missing.
+export async function ensureOwnerAdmins(app) {
+  const { db, c } = app;
+  for (const part of (process.env.ZIPI_ADMIN_PHONES || '').split(',').map(s => s.trim()).filter(Boolean)) {
+    const [raw, ...nm] = part.split(':'), phone = raw.replace(/\D/g, '').slice(-10), name = nm.join(':').trim();
+    if (!/^[6-9]\d{9}$/.test(phone)) { log.warn('ZIPI_ADMIN_PHONES: skipped an entry that is not a 10-digit Indian mobile number'); continue; }
+    const u = await c.ensureUser(phone, name);
+    if (u.roles.includes('admin') && c.isSuper(u)) continue;
+    await c.addRole(u.id, 'admin', { perms: ['*'], ...(name && !u.name ? { name } : {}) });
+    await c.audit({ id: 'system', name: 'System' }, 'super admin added from ZIPI_ADMIN_PHONES', `xxxxxx${phone.slice(-4)}`).catch(() => {});
+    log.info('super admin added from ZIPI_ADMIN_PHONES', { phone: `xxxxxx${phone.slice(-4)}` });
+  }
+}

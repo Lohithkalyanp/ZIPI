@@ -19,9 +19,10 @@ if (cluster.isPrimary && config.workers > 1) {
 } else {
   const { createApp } = await import('./src/app/index.js');
   const { makeServer, issueToken } = await import('./src/http.js');
-  const { seedIfEmpty, ensureDemoCatalog } = await import('./src/db/seed.js');
+  const { seedIfEmpty, ensureDemoCatalog, ensureTestAccounts, ensureOwnerAdmins } = await import('./src/db/seed.js');
   const app = await createApp(config, { issueToken, migrateOnStart: config.workers === 1 });
-  if (!config.prod || config.demo) { await seedIfEmpty(app); await ensureDemoCatalog(app).catch(err => log.warn('demo catalog skipped', { err: err.message })); }
+  if (!config.prod || config.demo) { await seedIfEmpty(app); await ensureDemoCatalog(app).catch(err => log.warn('demo catalog skipped', { err: err.message })); await ensureTestAccounts(app).catch(err => log.warn('test accounts skipped', { err: err.message })); }
+  if (!cluster.worker || cluster.worker.id === 1) await ensureOwnerAdmins(app).catch(err => log.warn('ZIPI_ADMIN_PHONES skipped', { err: err.message }));
   const { server, clients } = makeServer(app);
   app.jobs.start();
   server.listen(config.port, () => {

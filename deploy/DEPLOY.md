@@ -50,6 +50,8 @@ docker compose -f deploy/docker-compose.yml exec app node scripts/zipi.js create
 
 The blueprint starts in **demo mode** (`ZIPI_DEMO=1`): sample shops and the test accounts are created, login codes appear on screen and no SMS is sent, so you can test everything for free. Before real customers set `ZIPI_DEMO=0` and add Fast2SMS or SNS keys.
 
+To make your own phone a super admin without touching the database, set `ZIPI_ADMIN_PHONES=98XXXXXXXX:Your Name` in Render → Environment (comma-separate several). It is applied on every start and only adds the admin role when missing.
+
 `render.yaml` in the project root is a Render Blueprint. It creates the web service and a PostgreSQL database, and generates `ZIPI_SECRET` and `ZIPI_DATA_KEY`.
 
 1. Render dashboard → **New → Blueprint** → connect GitHub and pick the ZIPI repo → **Apply**.

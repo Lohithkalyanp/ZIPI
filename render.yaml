@@ -39,6 +39,8 @@ services:
         generateValue: true
       - key: ZIPI_DATA_KEY        # copy this value to a password manager after the first deploy
         generateValue: true
+      - key: ZIPI_ADMIN_PHONES    # your own phone becomes super admin, e.g. 98XXXXXXXX:Your Name (comma for more). Typed in Render only
+        sync: false
       - key: ZIPI_DEMO            # 1 = TEST VERSION: sample shops, test accounts, login codes on screen, no paid SMS.
         value: "1"                #     Set to 0 (and add Fast2SMS or SNS keys) before real customers.
       - key: SMS_PROVIDERS        # tried in order; ones without keys are skipped
